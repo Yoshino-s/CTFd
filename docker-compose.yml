@@ -19,11 +19,14 @@ services:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads
       - .:/opt/CTFd:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - db
     networks:
         default:
         internal:
+        frp:
+            ipv4_address: 172.1.0.2
 
   db:
     image: mariadb:10.4
@@ -48,7 +51,48 @@ services:
     networks:
         internal:
 
+  frpc:
+    image: glzjin/frp:latest
+    restart: always
+    volumes:
+      - ./frp:/conf/
+    entrypoint:
+        - /usr/local/bin/frpc
+        - -c
+        - /conf/frpc.ini
+    networks:
+        frp:
+            ipv4_address: 172.1.0.3
+        frp_containers:
+
+  frps:
+    image: glzjin/frp:latest
+    restart: always
+    volumes:
+      - ./frp:/conf/
+    entrypoint:
+        - /usr/local/bin/frps
+        - -c
+        - /conf/frps.ini
+    ports:
+      - "28000-28100:28000-28100"
+    networks:
+        frp:
+            ipv4_address: 172.1.0.4
+        default:
+
 networks:
     default:
     internal:
         internal: true
+    frp:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.1.0.0/16
+    frp_containers:
+        driver: bridge
+        internal: true
+        ipam:
+            config:
+                - subnet: 172.2.0.0/16

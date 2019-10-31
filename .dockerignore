@@ -3,5 +3,6 @@ CTFd/static/uploads
 CTFd/uploads
 CTFd/*.db
 CTFd/uploads/**/*
+frp/*
 .ctfd_secret_key
 .data
